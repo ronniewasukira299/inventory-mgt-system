@@ -1,0 +1,23 @@
+name: Django CI
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: Install Dependencies
+      run: |
+        pip install django flake8
+    - name: Run Linting
+      run: flake8 . --exclude=migrations,venv
+    - name: Run Tests
+      run: python manage.py test
