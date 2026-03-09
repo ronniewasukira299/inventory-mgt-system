@@ -23,5 +23,5 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('blog/', include('blog.urls')),
     path('notifications/', include('notifications.urls')),
-    path('', include('content.urls')), # Main site content
+    path('', include('core.urls')), # Main site content
 ]

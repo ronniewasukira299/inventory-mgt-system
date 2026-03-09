@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>User Profile</h2>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Role:</strong> {{ user.role }}</p>
+        <p><strong>Joined:</strong> {{ user.joined_date }}</p>
+        {% if user.bio %}
+            <p><strong>Bio:</strong> {{ user.bio }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
