@@ -1,52 +1,494 @@
-# API Documentation
+# API Documentation - Inventory & Invoicing System
+
+## Base URL
+```
+http://localhost:8000/api/
+```
 
 ## Authentication
-All API endpoints require the user to be authenticated. Use session-based authentication or token-based authentication for API calls.
+All API endpoints require authentication using token-based authentication. Include your authentication token in the Authorization header:
+```
+Authorization: Token <your-token>
+```
+
+## Response Format
+All responses are returned as JSON with standard HTTP status codes.
+
+---
 
 ## Endpoints
 
-### GET /api/devices/
-Returns a list of devices in JSON format with filtering options.
+### 1. Products API
 
-**Parameters:**
-- `type` (optional): Filter by device type ('serial' or 'parallel')
-- `category` (optional): Filter by category ID
+#### List Products
+- **URL:** `/api/products/`
+- **Method:** `GET`
+- **Query Parameters:**
+  - `category` (optional): Filter by category ID
+  - `is_active` (optional): Filter by active status
+  - `search` (optional): Search in name and code
+  - `page` (optional): Page number
 
-**Response:**
+**Example Request:**
+```
+GET /api/products/?category=1&is_active=true
+```
+
+**Response (200):**
 ```json
 {
-  "devices": [
+  "count": 50,
+  "results": [
     {
       "id": 1,
-      "name": "Arduino Uno",
-      "type": "serial",
-      "category": "Serial Devices",
-      "specs": {"voltage": "5V", "clock": "16MHz"},
-      "created_by": "admin"
+      "code": "PROD001",
+      "name": "Product Name",
+      "category": 1,
+      "cost_price": "10.00",
+      "selling_price": "15.00",
+      "quantity_in_stock": 100,
+      "is_active": true,
+      "created_at": "2024-03-01T10:30:00Z"
     }
   ]
 }
 ```
 
-**Example Requests:**
-- `/api/devices/` - Get all devices
-- `/api/devices/?type=serial` - Get all serial devices
-- `/api/devices/?category=1` - Get devices in category 1
+#### Product Search
+- **URL:** `/api/search/`
+- **Method:** `GET`
+- **Parameters:**
+  - `q` (required): Search query string
 
-### GET /api/search/
-Returns search suggestions for devices based on query string.
+**Example Request:**
+```
+GET /api/search/?q=Arduino
+```
 
-**Parameters:**
-- `q` (required): Search query string
+**Response (200):**
+```json
+{
+  "suggestions": [
+    {"id": 1, "code": "PROD001", "name": "Arduino Uno"},
+    {"id": 3, "code": "PROD003", "name": "Arduino Mega"}
+  ]
+}
+```
+
+### 2. Invoicing API
+
+#### List Invoices
+- **URL:** `/api/invoices/`
+- **Method:** `GET`
+- **Filters:**
+  - `customer`: Customer ID
+  - `status`: Invoice status (draft, issued, partially_paid, paid, overdue)
+  - `from_date`: Start date (YYYY-MM-DD)
+  - `to_date`: End date (YYYY-MM-DD)
+
+#### Create Invoice
+- **URL:** `/api/invoices/`
+- **Method:** `POST`
+
+**Request Body:**
+```json
+{
+  "invoice_number": "INV-2024-001",
+  "customer": 1,
+  "issue_date": "2024-03-10",
+  "due_date": "2024-04-10",
+  "items": [
+    {
+      "product": 1,
+      "quantity": 5,
+      "unit_price": "100.00",
+      "tax_rate": "10.00"
+    }
+  ]
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": 1,
+  "invoice_number": "INV-2024-001",
+  "customer": 1,
+  "total_amount": "550.00",
+  "status": "draft",
+  "created_at": "2024-03-01T10:30:00Z"
+}
+```
+
+#### Get Invoice Details
+- **URL:** `/api/invoices/{id}/`
+- **Method:** `GET`
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "invoice_number": "INV-2024-001",
+  "customer": { "id": 1, "name": "Customer Name" },
+  "issue_date": "2024-03-10",
+  "due_date": "2024-04-10",
+  "subtotal": "500.00",
+  "tax_amount": "50.00",
+  "total_amount": "550.00",
+  "paid_amount": "0.00",
+  "outstanding_amount": "550.00",
+  "status": "issued",
+  "is_approved": true,
+  "items": [
+    {
+      "id": 1,
+      "product": { "id": 1, "name": "Product Name" },
+      "quantity": 5,
+      "unit_price": "100.00",
+      "tax_rate": "10.00",
+      "total_price": "550.00"
+    }
+  ]
+}
+```
+
+#### Approve Invoice
+- **URL:** `/api/invoices/{id}/approve/`
+- **Method:** `POST`
+
+### 3. Receipts API
+
+#### List Receipts
+- **URL:** `/api/receipts/`
+- **Method:** `GET`
+- **Filters:**
+  - `supplier`: Supplier ID
+  - `status`: Receipt status
+
+#### Create Receipt
+- **URL:** `/api/receipts/`
+- **Method:** `POST`
+
+**Request Body:**
+```json
+{
+  "receipt_number": "RCP-2024-001",
+  "supplier": 1,
+  "receipt_date": "2024-03-10",
+  "po_number": "PO-2024-001",
+  "items": [
+    {
+      "product": 1,
+      "quantity_ordered": 100,
+      "quantity_received": 100,
+      "unit_price": "10.00",
+      "tax_rate": "5.00"
+    }
+  ]
+}
+```
+
+### 4. Customer Management API
+
+#### List Customers
+- **URL:** `/api/customers/`
+- **Method:** `GET`
+- **Filters:**
+  - `status`: active, inactive, blocked
+  - `search`: Search by name or email
+
+#### Get Customer Details
+- **URL:** `/api/customers/{id}/`
+- **Method:** `GET`
+
+**Response includes:**
+- Customer information
+- Credit information (limit, used, available)
+- Recent invoices
+- Outstanding debts
+
+#### Create Customer
+- **URL:** `/api/customers/`
+- **Method:** `POST`
+
+**Request Body:**
+```json
+{
+  "name": "New Customer",
+  "contact_person": "John Doe",
+  "email": "john@example.com",
+  "phone": "1234567890",
+  "address": "123 Main St",
+  "city": "City",
+  "country": "Country",
+  "postal_code": "12345",
+  "credit_limit": "10000.00",
+  "credit_terms_days": 30,
+  "status": "active"
+}
+```
+
+### 5. Suppliers API
+
+#### List Suppliers
+- **URL:** `/api/suppliers/`
+- **Method:** `GET`
+- **Filters:**
+  - `status`: active, inactive, suspended
+  - `search`: Search by name
+
+#### Get Supplier Details
+- **URL:** `/api/suppliers/{id}/`
+- **Method:** `GET`
+
+#### Create Supplier
+- **URL:** `/api/suppliers/`
+- **Method:** `POST`
+
+### 6. Debt Management API
+
+#### List Debts
+- **URL:** `/api/debts/`
+- **Method:** `GET`
+- **Filters:**
+  - `customer`: Customer ID
+  - `status`: pending, partially_paid, paid, overdue, written_off
+  - `overdue_only`: true/false
+
+#### Get Debt Details
+- **URL:** `/api/debts/{id}/`
+- **Method:** `GET`
 
 **Response:**
 ```json
 {
-  "suggestions": [
-    {"id": 1, "name": "Arduino Uno"},
-    {"id": 3, "name": "Arduino Mega"}
+  "id": 1,
+  "customer": { "id": 1, "name": "Customer Name" },
+  "invoice": { "id": 1, "invoice_number": "INV-2024-001" },
+  "original_amount": "1000.00",
+  "paid_amount": "300.00",
+  "outstanding_amount": "700.00",
+  "due_date": "2024-04-10",
+  "status": "partially_paid",
+  "days_overdue": 5,
+  "collection_attempts": 2,
+  "is_overdue": true,
+  "payments": [
+    {
+      "id": 1,
+      "amount": "300.00",
+      "payment_date": "2024-03-15",
+      "payment_method": "bank_transfer",
+      "reference_number": "TXN-001"
+    }
   ]
 }
+```
+
+#### Record Debt Payment
+- **URL:** `/api/debts/{id}/record_payment/`
+- **Method:** `POST`
+
+**Request Body:**
+```json
+{
+  "amount": "500.00",
+  "payment_date": "2024-03-10",
+  "payment_method": "bank_transfer",
+  "reference_number": "TXN-123456",
+  "notes": "Payment for invoice INV-2024-001"
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "status": "success",
+  "message": "Payment recorded successfully",
+  "debt": {
+    "id": 1,
+    "outstanding_amount": "200.00",
+    "status": "partially_paid"
+  }
+}
+```
+
+### 7. Reports API
+
+#### Sales Report
+- **URL:** `/api/reports/sales/`
+- **Method:** `GET`
+- **Parameters:**
+  - `from_date` (required): Start date
+  - `to_date` (required): End date
+
+**Response:**
+```json
+{
+  "period": { "from_date": "2024-01-01", "to_date": "2024-03-31" },
+  "totals": {
+    "total_invoices": 150,
+    "total_revenue": "50000.00",
+    "total_paid": "40000.00",
+    "total_outstanding": "10000.00"
+  }
+}
+```
+
+#### Inventory Status
+- **URL:** `/api/reports/inventory/`
+- **Method:** `GET`
+
+**Response:**
+```json
+{
+  "summary": {
+    "total_products": 500,
+    "total_value": "250000.00",
+    "low_stock_count": 25
+  },
+  "low_stock_items": [...]
+}
+```
+
+#### Debt Aging Report
+- **URL:** `/api/reports/debt-aging/`
+- **Method:** `GET`
+
+**Response:**
+```json
+{
+  "summary": {
+    "total_outstanding": "100000.00",
+    "total_overdue": "35000.00"
+  },
+  "by_age": {
+    "current": "40000.00",
+    "30_days": "30000.00",
+    "60_days": "20000.00",
+    "90_plus_days": "10000.00"
+  }
+}
+```
+
+### 8. Dashboard API
+
+#### Metrics
+- **URL:** `/api/dashboard/metrics/`
+- **Method:** `GET`
+
+**Response:**
+```json
+{
+  "invoices": {
+    "total": 150,
+    "pending_approval": 5,
+    "overdue": 3
+  },
+  "debts": {
+    "total_outstanding": "100000.00",
+    "overdue": "35000.00"
+  },
+  "inventory": {
+    "low_stock_items": 25,
+    "total_value": "250000.00"
+  },
+  "approvals_pending": 7
+}
+```
+
+---
+
+## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "detail": "Invalid request",
+  "errors": { "field_name": ["Error message"] }
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+### 404 Not Found
+```json
+{
+  "detail": "Not found."
+}
+```
+
+### 500 Internal Server Error
+```json
+{
+  "detail": "Internal server error"
+}
+```
+
+---
+
+## Status Codes
+
+- `200 OK` - Request successful
+- `201 Created` - Resource created
+- `204 No Content` - Request successful, no content to return
+- `400 Bad Request` - Invalid request parameters
+- `401 Unauthorized` - Authentication required
+- `403 Forbidden` - Permission denied
+- `404 Not Found` - Resource not found
+- `500 Internal Server Error` - Server error
+
+---
+
+## Pagination
+
+Use `page` and `page_size` query parameters:
+```
+GET /api/products/?page=2&page_size=50
+```
+
+---
+
+## Filtering & Searching
+
+Use query parameters to filter:
+```
+GET /api/invoices/?status=paid&customer=1
+GET /api/customers/?search=john&status=active
+```
+
+---
+
+## Examples
+
+Get all devices (for backward compatibility):
+```bash
+GET /api/products/
+```
+
+Search products:
+```bash
+curl -X GET "http://localhost:8000/api/search/?q=Arduino" \
+  -H "Authorization: Token YOUR_TOKEN"
+```
+
+Create invoice:
+```bash
+curl -X POST http://localhost:8000/api/invoices/ \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "invoice_number": "INV-2024-001",
+    "customer": 1,
+    "issue_date": "2024-03-10",
+    "due_date": "2024-04-10"
+  }'
 ```
 
 **Example Request:**

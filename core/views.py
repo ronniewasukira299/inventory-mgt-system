@@ -1,15 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from .models import Device, DeviceComparison, Category
+from django.db.models import Sum, Q, F
+from django.utils import timezone
+from .models import Product, Category, Invoice, Receipt, Debt, Customer, Supplier
 from .forms import DeviceSearchForm, ContactForm
 
-class DeviceListView(LoginRequiredMixin, ListView):
+
+class ProductListView(LoginRequiredMixin, ListView):
     """
-    Displays a paginated list of devices with search and filtering capabilities.
+    Displays a paginated list of products with search and filtering capabilities.
     """
-    model = Device
+    model = Product
     template_name = 'core/device_list.html'
     context_object_name = 'devices'
     paginate_by = 10
@@ -20,14 +23,11 @@ class DeviceListView(LoginRequiredMixin, ListView):
         if form.is_valid():
             search = form.cleaned_data.get('search')
             category = form.cleaned_data.get('category')
-            device_type = form.cleaned_data.get('device_type')
 
             if search:
-                queryset = queryset.filter(name__icontains=search)
+                queryset = queryset.filter(Q(name__icontains=search) | Q(code__icontains=search))
             if category:
                 queryset = queryset.filter(category=category)
-            if device_type:
-                queryset = queryset.filter(type=device_type)
 
         return queryset
 
@@ -37,33 +37,87 @@ class DeviceListView(LoginRequiredMixin, ListView):
         context['categories'] = Category.objects.all()
         return context
 
-class DeviceDetailView(LoginRequiredMixin, DetailView):
+
+# Keep old name for compatibility with existing templates
+DeviceListView = ProductListView
+
+
+class ProductDetailView(LoginRequiredMixin, DetailView):
     """
-    Displays detailed information about a specific device.
+    Displays detailed information about a specific product.
     """
-    model = Device
+    model = Product
     template_name = 'core/device_detail.html'
     context_object_name = 'device'
 
-def device_comparison_view(request, pk1, pk2):
-    """
-    Displays a comparison between two devices.
-    """
-    device1 = get_object_or_404(Device, pk=pk1)
-    device2 = get_object_or_404(Device, pk=pk2)
 
-    comparison, created = DeviceComparison.objects.get_or_create(
-        device1=device1,
-        device2=device2,
-        defaults={'created_by': request.user, 'comparison_data': {}}
-    )
+# Keep old name for compatibility
+DeviceDetailView = ProductDetailView
 
-    context = {
-        'device1': device1,
-        'device2': device2,
-        'comparison': comparison,
-    }
-    return render(request, 'core/device_comparison.html', context)
+
+class ManagerDashboardView(LoginRequiredMixin, TemplateView):
+    """
+    Real-time manager monitoring dashboard showing all key metrics.
+    """
+    template_name = 'core/manager_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get current date and today
+        today = timezone.now().date()
+        
+        # Invoice metrics
+        context['total_invoices'] = Invoice.objects.count()
+        context['pending_invoices'] = Invoice.objects.filter(is_approved=False).count()
+        context['overdue_invoices'] = Invoice.objects.filter(
+            status='overdue',
+            issue_date__lt=today
+        ).count()
+        context['total_invoice_value'] = Invoice.objects.aggregate(
+            total=Sum('total_amount')
+        )['total'] or 0
+        
+        # Receipt metrics
+        context['total_receipts'] = Receipt.objects.count()
+        context['pending_receipts'] = Receipt.objects.filter(is_approved=False).count()
+        
+        # Debt metrics
+        context['total_outstanding_debt'] = Debt.objects.filter(
+            status__in=['pending', 'partially_paid', 'overdue']
+        ).aggregate(total=Sum('original_amount') - Sum('paid_amount'))['total'] or 0
+        context['overdue_debts'] = Debt.objects.filter(
+            status__in=['pending', 'partially_paid', 'overdue'],
+            due_date__lt=today
+        ).count()
+        
+        # Inventory metrics
+        context['low_stock_products'] = Product.objects.filter(
+            quantity_in_stock__lte=F('reorder_level')
+        ).count()
+        context['total_products'] = Product.objects.count()
+        
+        # Organization metrics
+        context['total_customers'] = Customer.objects.count()
+        context['total_suppliers'] = Supplier.objects.count()
+        
+        # Recent transactions
+        context['recent_invoices'] = Invoice.objects.select_related('customer').order_by('-created_at')[:5]
+        context['recent_receipts'] = Receipt.objects.select_related('supplier').order_by('-created_at')[:5]
+        context['recent_debts'] = Debt.objects.select_related('customer').filter(
+            status__in=['pending', 'partially_paid', 'overdue']
+        ).order_by('-created_at')[:5]
+        
+        return context
+
+
+def device_comparison_view(request, pk1=None, pk2=None):
+    """
+    Comparison view - keeping for compatibility but redirecting to dashboard.
+    """
+    messages.info(request, 'Device comparison feature has been replaced with inventory management tools.')
+    return redirect('core:manager_dashboard')
+
 
 def contact_view(request):
     """

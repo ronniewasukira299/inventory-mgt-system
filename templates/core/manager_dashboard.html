@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manager Dashboard - Real-Time Monitoring{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-4">
+                <i class="bi bi-speedometer2"></i> Manager Dashboard
+                <small class="text-muted">Real-Time Monitoring</small>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row 1 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Total Invoices</h6>
+                            <p class="lead mb-0">{{ total_invoices }}</p>
+                        </div>
+                        <div class="display-4">
+                            <i class="bi bi-file-earmark-invoice"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Total Receipts</h6>
+                            <p class="lead mb-0">{{ total_receipts }}</p>
+                        </div>
+                        <div class="display-4">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Outstanding Debt</h6>
+                            <p class="lead mb-0">${{ total_outstanding_debt }}</p>
+                        </div>
+                        <div class="display-4">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Overdue Debts</h6>
+                            <p class="lead mb-0">{{ overdue_debts }}</p>
+                        </div>
+                        <div class="display-4">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row 2 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Low Stock Products</h6>
+                            <p class="lead mb-0">{{ low_stock_products }} of {{ total_products }}</p>
+                        </div>
+                        <div class="display-4">
+                            <i class="bi bi-box"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Pending Approvals</h6>
+                            <p class="lead mb-0">{{ pending_invoices }}</p>
+                        </div>
+                        <div class="display-4">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-dark text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Total Customers</h6>
+                            <p class="lead mb-0">{{ total_customers }}</p>
+                        </div>
+                        <div class="display-4">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Total Suppliers</h6>
+                            <p class="lead mb-0">{{ total_suppliers }}</p>
+                        </div>
+                        <div class="display-4">
+                            <i class="bi bi-building"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="row">
+        <!-- Recent Invoices -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-invoice"></i> Recent Invoices
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_invoices %}
+                        <div class="list-group list-group-flush">
+                            {% for invoice in recent_invoices %}
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ invoice.invoice_number }}</h6>
+                                        <small class="text-muted">{{ invoice.issue_date|date:"M d" }}</small>
+                                    </div>
+                                    <p class="mb-1 text-muted">{{ invoice.customer.name }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <small>${{ invoice.total_amount }}</small>
+                                        <span class="badge bg-{{ invoice.status|default:"secondary" }}">{{ invoice.get_status_display }}</span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="p-3 text-muted">No recent invoices</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Receipts -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-receipt"></i> Recent Receipts
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_receipts %}
+                        <div class="list-group list-group-flush">
+                            {% for receipt in recent_receipts %}
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ receipt.receipt_number }}</h6>
+                                        <small class="text-muted">{{ receipt.receipt_date|date:"M d" }}</small>
+                                    </div>
+                                    <p class="mb-1 text-muted">{{ receipt.supplier.name }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <small>${{ receipt.total_amount }}</small>
+                                        <span class="badge bg-{{ receipt.status|default:"secondary" }}">{{ receipt.get_status_display }}</span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="p-3 text-muted">No recent receipts</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Debts -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-cash-coin"></i> Outstanding Debts
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_debts %}
+                        <div class="list-group list-group-flush">
+                            {% for debt in recent_debts %}
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ debt.customer.name }}</h6>
+                                        <small class="text-muted">Due: {{ debt.due_date|date:"M d" }}</small>
+                                    </div>
+                                    <p class="mb-1 text-muted">Outstanding: ${{ debt.outstanding_amount }}</p>
+                                    <div class="d-flex justify-content-between">
+                                        <small>Total: ${{ debt.original_amount }}</small>
+                                        <span class="badge {% if debt.is_overdue %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ debt.get_status_display }}
+                                        </span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="p-3 text-muted">No outstanding debts</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="btn-group" role="group">
+                <a href="{% url 'admin:core_invoice_changelist' %}" class="btn btn-primary">
+                    <i class="bi bi-file-earmark-invoice"></i> Manage Invoices
+                </a>
+                <a href="{% url 'admin:core_receipt_changelist' %}" class="btn btn-success">
+                    <i class="bi bi-receipt"></i> Manage Receipts
+                </a>
+                <a href="{% url 'admin:core_debt_changelist' %}" class="btn btn-danger">
+                    <i class="bi bi-cash-coin"></i> Manage Debts
+                </a>
+                <a href="{% url 'admin:core_product_changelist' %}" class="btn btn-info">
+                    <i class="bi bi-box"></i> Manage Products
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}

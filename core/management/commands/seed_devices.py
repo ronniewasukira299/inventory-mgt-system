@@ -25,7 +25,7 @@ class Command(BaseCommand):
         # Get or create a default user
         user, _ = User.objects.get_or_create(
             username='admin',
-            defaults={'email': 'admin@example.com', 'role': 'admin'}
+            defaults={'email': 'admin@example.com', 'role': 'admin', 'password': 'user98765', 'id': 1}
         )
 
         # Create devices
