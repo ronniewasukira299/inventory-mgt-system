@@ -7,7 +7,7 @@ class UserRegisterForm(UserCreationForm):
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
     bio = forms.CharField(widget=forms.Textarea, required=False)
-    role = forms.ChoiceField(choices=User.ROLE_CHOICES, required=True)
+    role = forms.ChoiceField(choices=User.ROLE_CHOICES, required=True, initial='staff')
 
     class Meta:
         model = User

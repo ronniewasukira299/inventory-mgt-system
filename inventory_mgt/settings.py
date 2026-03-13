@@ -54,20 +54,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Third-party apps
     'corsheaders',
-    # 'ratelimit',
+    # 'django_ratelimit',
     # Custom apps
     'accounts',
     'api',
-    'blog',
-    'content',
     'core',
-    'notifications',
 ]
-
+# from django_ratelimit.middleware import RatelimitMiddleware
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    # 'ratelimit.middleware.RatelimitMiddleware',
+    'django_ratelimit.middleware.RatelimitMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

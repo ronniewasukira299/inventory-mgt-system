@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Products</h1>
+
+    <!-- Search and Filter Form
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="Search by name or code...">
+                </div>
+                <div class="col-md-3">
+                    <select name="supplier_id" class="form-select">
+                        <option value="">All Suppliers</option>
+                        {% for supplier in suppliers %}
+                        <option value="{{ supplier.id }}" {% if supplier_id == supplier.id|stringformat:"s" %}selected{% endif %}>
+                            {{ supplier.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'core:product_list' %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div> -->
+    <!-- Search and Filter Form --> 
+    <div style="background:#ffffff; padding:20px 25px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08); margin-bottom:1.5rem;">
+        <form method="get" class="row g-3" style="gap:12px; align-items:center;">
+            <div class="col-md-4">
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ search }}" 
+                    placeholder="Search by name or code..." 
+                    style="width:100%; border-radius:25px; padding:10px 15px; font-size:14px; border:1px solid #ddd; transition:border-color 0.2s, box-shadow 0.2s;"
+                    onfocus="this.style.borderColor='#0d6efd'; this.style.boxShadow='0 0 5px rgba(13,110,253,0.25)';" 
+                    onblur="this.style.borderColor='#ddd'; this.style.boxShadow='none';"
+                >
+            </div>
+            <div class="col-md-3">
+                <select 
+                    name="supplier_id" 
+                    style="width:100%; border-radius:25px; padding:10px 15px; font-size:14px; border:1px solid #ddd; transition:border-color 0.2s, box-shadow 0.2s;"
+                    onfocus="this.style.borderColor='#0d6efd'; this.style.boxShadow='0 0 5px rgba(13,110,253,0.25)';" 
+                    onblur="this.style.borderColor='#ddd'; this.style.boxShadow='none';"
+                >
+                    <option value="">All Suppliers</option>
+                    {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}" {% if supplier_id == supplier.id|stringformat:"s" %}selected{% endif %}>
+                        {{ supplier.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button 
+                    type="submit" 
+                    style="width:100%; border-radius:25px; padding:10px 20px; font-size:14px; border:none; background:#0d6efd; color:white; cursor:pointer; transition:background 0.2s;"
+                    onmouseover="this.style.background='#0b5ed7';" 
+                    onmouseout="this.style.background='#0d6efd';"
+                >Search</button>
+            </div>
+            <div class="col-md-2">
+                <a 
+                    href="{% url 'core:product_list' %}" 
+                    style="display:inline-block; width:100%; text-align:center; border-radius:25px; padding:10px 20px; font-size:14px; border:none; background:#6c757d; color:white; text-decoration:none; transition:background 0.2s;"
+                    onmouseover="this.style.background='#5c636a';" 
+                    onmouseout="this.style.background='#6c757d';"
+                >Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Products List -->
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">
+                        <strong>Code:</strong> {{ product.code }}<br>
+                        <strong>Category:</strong> {{ product.category.name }}<br>
+                        <strong>Price:</strong> ${{ product.selling_price }}<br>
+                        <strong>Stock:</strong> {{ product.quantity_in_stock }}
+                        {% if product.is_low_stock %}
+                        <span class="badge bg-warning">Low Stock</span>
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'core:product_detail' product.pk %}" class="btn btn-primary">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Product pagination">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if supplier_id %}supplier_id={{ supplier_id }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if supplier_id %}supplier_id={{ supplier_id }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+{% block extra_head %}
+<style>
+/* ===== Modern Search & Filter Form Styling ===== */
+
+.search-filter-card {
+    background: #ffffff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+}
+
+.search-filter-card form.row {
+    gap: 12px; /* small gap between inputs */
+    align-items: center;
+}
+
+.search-filter-card input.form-control,
+.search-filter-card select.form-select {
+    border-radius: 25px;
+    padding: 10px 15px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-filter-card input.form-control:focus,
+.search-filter-card select.form-select:focus {
+    border-color: #0d6efd;
+    outline: none;
+    box-shadow: 0 0 5px rgba(13,110,253,0.25);
+}
+
+.search-filter-card button,
+.search-filter-card a.btn {
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 14px;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.search-filter-card button.btn-primary:hover {
+    background: #0b5ed7;
+}
+
+.search-filter-card a.btn-secondary:hover {
+    background: #6c757d;
+    color: white;
+}
+
+@media (max-width: 576px) {
+    .search-filter-card form.row > * {
+        flex: 1 1 100%;
+    }
+}
+</style>
+{% endblock %}

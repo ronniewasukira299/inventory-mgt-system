@@ -121,6 +121,8 @@ class Product(models.Model):
         ('kg', 'Kilogram'),
         ('liter', 'Liter'),
         ('meter', 'Meter'),
+        ('carton', 'Carton'),
+        ('bag', 'Bag'),
     ]
 
     code = models.CharField(max_length=50, unique=True, db_index=True)

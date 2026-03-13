@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Record Stock Movement{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Record Stock Movement</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Record Movement</button>
+                <a href="{% url 'core:product_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

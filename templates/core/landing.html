@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inventory Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% if user.is_authenticated %}
+        <!-- Authenticated User Dashboard -->
+        <div class="col-12">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-tachometer-alt me-2"></i>Welcome back, {{ user.get_full_name|default:user.username }}!
+                    </h1>
+                    <p class="text-muted mt-1">Here's what's happening with your inventory today.</p>
+                </div>
+            </div>
+
+            <!-- Quick Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Products
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_products|default:0 }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-boxes fa-2x text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Total Suppliers
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_suppliers|default:0 }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-truck fa-2x text-success"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Low Stock Items
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ low_stock_products|default:0 }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-info"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Total Customers
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_customers|default:0 }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-warning"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-history me-2"></i>Recent Stock Movements
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_movements %}
+                                <div class="table-responsive">
+                                    <table class="table table-borderless">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Type</th>
+                                                <th>Quantity</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for movement in recent_movements %}
+                                            <tr>
+                                                <td>{{ movement.product.name }}</td>
+                                                <td>
+                                                    <span class="badge bg-{% if movement.movement_type == 'IN' %}success{% else %}danger{% endif %}">
+                                                        {{ movement.get_movement_type_display }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ movement.quantity }}</td>
+                                                <td>{{ movement.created_at|date:"M d, Y H:i" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted mb-0">No recent stock movements.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-bolt me-2"></i>Quick Actions
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'core:product_create' %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus me-1"></i>Add Product
+                                </a>
+                                <a href="{% url 'core:supplier_create' %}" class="btn btn-success btn-sm">
+                                    <i class="fas fa-plus me-1"></i>Add Supplier
+                                </a>
+                                <a href="{% url 'core:stock_movement_create' %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-exchange-alt me-1"></i>Move Stock
+                                </a>
+                                {% if user.role == 'manager' %}
+                                <a href="{% url 'core:manager_dashboard' %}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-chart-line me-1"></i>View Analytics
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Public Landing Page -->
+        <div class="col-12">
+            <!-- Hero Section -->
+            <div class="row mb-5">
+                <div class="col-12 text-center">
+                    <div class="hero-section py-5">
+                        <h1 class="display-4 fw-bold text-primary mb-3">
+                            <i class="fas fa-boxes me-3"></i>Inventory Management System
+                        </h1>
+                        <p class="lead text-muted mb-4">
+                            Streamline your inventory operations with our comprehensive management solution.
+                            Track products, manage suppliers, and optimize your stock levels efficiently.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg px-4">
+                                <i class="fas fa-user-plus me-2"></i>Get Started
+                            </a>
+                            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg px-4">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h2 class="h3 text-center mb-4">Key Features</h2>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-boxes fa-3x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Product Management</h5>
+                            <p class="card-text text-muted">
+                                Comprehensive product catalog with categories, stock levels, and detailed tracking.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-truck fa-3x text-success"></i>
+                            </div>
+                            <h5 class="card-title">Supplier Management</h5>
+                            <p class="card-text text-muted">
+                                Manage supplier relationships, track orders, and maintain supplier information.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3">
+                                <i class="fas fa-chart-line fa-3x text-info"></i>
+                            </div>
+                            <h5 class="card-title">Analytics & Reporting</h5>
+                            <p class="card-text text-muted">
+                                Generate insights with comprehensive reports and real-time analytics.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benefits Section -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm bg-light">
+                        <div class="card-body p-5">
+                            <div class="row align-items-center">
+                                <div class="col-lg-6">
+                                    <h3 class="h4 mb-3">Why Choose Our System?</h3>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            User-friendly interface with role-based access
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Real-time inventory tracking and alerts
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Comprehensive reporting and analytics
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Secure data management and backup
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Mobile-responsive design
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-lg-6 text-center">
+                                    <i class="fas fa-cogs fa-6x text-primary opacity-25"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="row">
+                <div class="col-12 text-center">
+                    <div class="cta-section py-5">
+                        <h3 class="h4 mb-3">Ready to optimize your inventory management?</h3>
+                        <p class="text-muted mb-4">
+                            Join thousands of businesses already using our system to streamline their operations.
+                        </p>
+                        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg px-5">
+                            <i class="fas fa-rocket me-2"></i>Start Free Trial
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .border-left-primary {
+        border-left: 0.25rem solid #4e73df !important;
+    }
+    .border-left-success {
+        border-left: 0.25rem solid #1cc88a !important;
+    }
+    .border-left-info {
+        border-left: 0.25rem solid #36b9cc !important;
+    }
+    .border-left-warning {
+        border-left: 0.25rem solid #f6c23e !important;
+    }
+    .text-primary {
+        color: #5a5c69 !important;
+    }
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+        margin: 2rem 0;
+    }
+    .hero-section .lead {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    .feature-icon {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .cta-section {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 15px;
+        color: white;
+        margin: 2rem 0;
+    }
+    .cta-section .text-muted {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+</style>
+<style>
+.hero-section {
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+}
+.card {
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

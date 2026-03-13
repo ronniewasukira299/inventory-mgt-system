@@ -1,17 +1,115 @@
 {% extends 'base.html' %}
 
+
 {% block title %}Register{% endblock %}
 
+{% block extra_head %}
+<style>
+
+/* Layout */
+.register-container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:70vh;
+}
+
+/* Card */
+.register-card{
+    width:100%;
+    max-width:440px;
+    padding:35px;
+    border-radius:10px;
+    background:#ffffff;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+/* Title */
+.register-title{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+/* Inputs */
+.register-card input{
+    width:100%;
+    padding:10px;
+    margin-top:5px;
+    margin-bottom:18px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-size:14px;
+}
+
+/* Labels */
+.register-card label{
+    font-weight:600;
+}
+
+/* Button */
+.register-btn{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    background:#0d6efd;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.register-btn:hover{
+    background:#0b5ed7;
+}
+
+/* Links */
+.register-links{
+    margin-top:15px;
+    text-align:center;
+    font-size:14px;
+}
+
+.register-links a{
+    color:#0d6efd;
+    text-decoration:none;
+}
+
+.register-links a:hover{
+    text-decoration:underline;
+}
+
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2>Register</h2>
+
+<div class="register-container">
+
+    <div class="register-card">
+
+        <h2 class="register-title">Create an Account</h2>
+
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Register</button>
+
+            <button type="submit" class="register-btn">
+                Register
+            </button>
         </form>
-        <p class="mt-3">Already have an account? <a href="{% url 'accounts:login' %}">Login here</a></p>
+
+        <div class="register-links">
+            <p>
+                Already have an account?
+                <a href="{% url 'accounts:login' %}">
+                    Login here
+                </a>
+            </p>
+        </div>
+
     </div>
+
 </div>
+
 {% endblock %}

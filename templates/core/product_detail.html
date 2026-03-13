@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ product.name }}</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Product Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Code:</th>
+                            <td>{{ product.code }}</td>
+                        </tr>
+                        <tr>
+                            <th>Category:</th>
+                            <td>{{ product.category.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Description:</th>
+                            <td>{{ product.description }}</td>
+                        </tr>
+                        <tr>
+                            <th>Cost Price:</th>
+                            <td>${{ product.cost_price }}</td>
+                        </tr>
+                        <tr>
+                            <th>Selling Price:</th>
+                            <td>${{ product.selling_price }}</td>
+                        </tr>
+                        <tr>
+                            <th>Unit:</th>
+                            <td>{{ product.get_unit_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>Stock Quantity:</th>
+                            <td>{{ product.quantity_in_stock }}
+                                {% if product.is_low_stock %}
+                                <span class="badge bg-warning">Low Stock</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Reorder Level:</th>
+                            <td>{{ product.reorder_level }}</td>
+                        </tr>
+                        <tr>
+                            <th>Reorder Quantity:</th>
+                            <td>{{ product.reorder_quantity }}</td>
+                        </tr>
+                        {% if product.default_supplier %}
+                        <tr>
+                            <th>Default Supplier:</th>
+                            <td><a href="{% url 'core:supplier_detail' product.default_supplier.pk %}">{{ product.default_supplier.name }}</a></td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if product.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Profit Margin:</th>
+                            <td>{{ product.profit_margin|floatformat:2 }}%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="{% url 'core:product_list' %}" class="btn btn-secondary mt-3">Back to Products</a>
+</div>
+{% endblock %}

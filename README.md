@@ -264,16 +264,175 @@ python manage.py seed_devices
 docker-compose up -d
 ```
 
+### Production Deployment
+
+#### 1. Environment Setup
+```bash
+# Create production environment file
+cp .env.example .env.production
+
+# Edit .env.production with production values:
+# - DEBUG=False
+# - SECRET_KEY=<generate-long-random-key>
+# - ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+# - DATABASE_URL=postgresql://user:password@host:port/database
+# - EMAIL_HOST=smtp.yourprovider.com
+# - EMAIL_HOST_USER=your-email@domain.com
+# - EMAIL_HOST_PASSWORD=your-email-password
+# - REDIS_URL=redis://localhost:6379/1 (for caching/session storage)
+```
+
+#### 2. Database Setup (PostgreSQL)
+```bash
+# Install PostgreSQL and create database
+sudo apt-get install postgresql postgresql-contrib
+sudo -u postgres createdb inventory_db
+sudo -u postgres createuser inventory_user
+sudo -u postgres psql -c "ALTER USER inventory_user PASSWORD 'secure_password';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE inventory_db TO inventory_user;"
+```
+
+#### 3. Application Deployment
+```bash
+# Install production dependencies
+pip install gunicorn psycopg2-binary django-redis redis
+
+# Run migrations
+python manage.py migrate
+
+# Create superuser
+python manage.py createsuperuser
+
+# Collect static files
+python manage.py collectstatic --noinput
+
+# Load initial data (optional)
+python manage.py seed_data
+```
+
+#### 4. Gunicorn Setup
+Create `/etc/systemd/system/gunicorn.service`:
+```ini
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/inventory-mgt-system
+ExecStart=/path/to/venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/run/gunicorn.sock inventory_mgt.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Enable and start Gunicorn
+sudo systemctl enable gunicorn
+sudo systemctl start gunicorn
+```
+
+#### 5. Nginx Setup
+Create `/etc/nginx/sites-available/inventory_app`:
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com www.yourdomain.com;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+
+    location /static/ {
+        alias /path/to/inventory-mgt-system/staticfiles/;
+    }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+}
+```
+
+```bash
+# Enable site
+sudo ln -s /etc/nginx/sites-available/inventory_app /etc/nginx/sites-enabled
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+#### 6. SSL Certificate (Let's Encrypt)
+```bash
+# Install Certbot
+sudo apt-get install certbot python3-certbot-nginx
+
+# Get SSL certificate
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+# Test renewal
+sudo certbot renew --dry-run
+```
+
+#### 7. Security Hardening
+```bash
+# Update settings.py for production:
+DEBUG = False
+ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com']
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+X_FRAME_OPTIONS = 'DENY'
+
+# Set up firewall
+sudo ufw allow 'Nginx Full'
+sudo ufw --force enable
+
+# Secure SSH
+sudo nano /etc/ssh/sshd_config
+# Change Port to non-standard
+# PermitRootLogin no
+# PasswordAuthentication no
+sudo systemctl restart sshd
+```
+
+#### 8. Monitoring & Backups
+```bash
+# Install monitoring tools
+pip install django-prometheus sentry-sdk
+
+# Set up automated backups
+# Create backup script in /usr/local/bin/backup_inventory.sh
+#!/bin/bash
+DATE=$(date +%Y%m%d_%H%M%S)
+pg_dump inventory_db > /backups/inventory_$DATE.sql
+find /backups -name "inventory_*.sql" -mtime +30 -delete
+
+# Add to crontab
+crontab -e
+# 0 2 * * * /usr/local/bin/backup_inventory.sh
+```
+
 ### Production Checklist
 - [ ] Set DEBUG = False in settings
-- [ ] Configure ALLOWED_HOSTS
-- [ ] Set SECRET_KEY from environment
-- [ ] Configure database (PostgreSQL)
-- [ ] Set up static files handling
-- [ ] Configure email settings
-- [ ] Enable HTTPS
-- [ ] Set up backups
-- [ ] Configure logging
+- [ ] Configure ALLOWED_HOSTS with actual domains
+- [ ] Set strong SECRET_KEY (50+ characters, random)
+- [ ] Configure PostgreSQL database
+- [ ] Set up static files serving with Nginx
+- [ ] Configure email settings for notifications
+- [ ] Enable HTTPS with SSL certificate
+- [ ] Set up automated database backups
+- [ ] Configure logging to files
+- [ ] Set up monitoring and alerts
+- [ ] Test all functionality in production
+- [ ] Configure firewall rules
+- [ ] Disable root SSH access
+- [ ] Set up log rotation
+- [ ] Configure rate limiting
+- [ ] Set up error reporting (Sentry)
 
 ## Security Considerations
 

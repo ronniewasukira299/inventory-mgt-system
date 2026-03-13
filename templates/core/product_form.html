@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit Product{% else %}Create Product{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{% if object %}Edit Product{% else %}Create Product{% endif %}</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">
+                    {% if object %}Update Product{% else %}Create Product{% endif %}
+                </button>
+                <a href="{% url 'core:product_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

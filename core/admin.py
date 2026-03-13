@@ -5,7 +5,8 @@ from .models import (
     Invoice, InvoiceItem, Receipt, ReceiptItem,
     Debt, DebtPayment, AuditLog, ManagerDashboardMetrics
 )
-
+admin.site.site_title = "INVENTORY MANAGEMENT SYSTEM"
+admin.site.site_header = "IMS ADMIN SITE"
 
 # ============================================================================
 # ORGANIZATION MANAGEMENT
