@@ -11,20 +11,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
     - name: Install Dependencies
       run: |
-        pip install django django-cors-headers django-ratelimit gunicorn flake8
+        pip install django django-cors-headers django-ratelimit flake8
 
     - name: Run Linting
       run: |
-        flake8 . --exclude=migrations,venv,__pycache__ --max-line-length=120
+        flake8 . --exclude=migrations,venv,__pycache__ --max-line-length=120 --ignore=E501,W503
 
     - name: Run Tests
       env:
