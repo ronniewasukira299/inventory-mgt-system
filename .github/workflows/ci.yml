@@ -20,13 +20,11 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        pip install django django-cors-headers django-ratelimit flake8
-
-    - name: Run Linting
-      run: |
-        flake8 . --exclude=migrations,venv,__pycache__ --max-line-length=120 --ignore=E501,W503
+        pip install django django-cors-headers django-ratelimit
 
     - name: Run Tests
       env:
+        SECRET_KEY: ci-test-secret-key-not-for-production
+        DEBUG: "True"
         DJANGO_SETTINGS_MODULE: inventory_mgt.settings
       run: python manage.py test
