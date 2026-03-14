@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Sum, Q, F
 from django.utils import timezone
 from django.urls import reverse_lazy
-from .models import Product, Category, Invoice, Receipt, Debt, Customer, Supplier, StockMovement
+from .models import Product, Supplier, StockMovement
 from .forms import ContactForm, SupplierForm, ProductForm, StockMovementForm
 from accounts.decorators import manager_required
 #     """

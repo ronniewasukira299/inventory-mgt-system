@@ -1,35 +1,36 @@
 from django import forms
-from .models import Product, Category, Invoice, Receipt, Debt, Customer, Supplier, StockMovement
-
-class ProductSearchForm(forms.Form):
-    """Search form for products."""
-    search = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'Search by name or code...'}))
-    category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False, empty_label="All Categories")
-    is_active = forms.BooleanField(required=False, label="Active products only")
+from .models import Product, Supplier, StockMovement
 
 
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['code', 'name', 'description', 'category', 'tags', 'cost_price', 'selling_price', 'unit', 'quantity_in_stock', 'reorder_level', 'reorder_quantity', 'default_supplier', 'is_active', 'specs']
+        fields = ['name', 'description', 'unit_price', 'stock_quantity', 'supplier', 'is_active']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
-            'specs': forms.Textarea(attrs={'rows': 3}),
-            'tags': forms.SelectMultiple(attrs={'class': 'form-select'}),
+        }
+
+
+class SupplierForm(forms.ModelForm):
+    class Meta:
+        model = Supplier
+        fields = ['name', 'contact_person', 'email', 'phone', 'address', 'is_active', 'notes']
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 3}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
         }
 
 
 class StockMovementForm(forms.ModelForm):
     class Meta:
         model = StockMovement
-        fields = ['product', 'movement_type', 'quantity', 'reference_type', 'reference_id', 'notes']
+        fields = ['product', 'movement_type', 'quantity', 'notes']
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Only show active products
         self.fields['product'].queryset = Product.objects.filter(is_active=True)
 
 
@@ -40,64 +41,9 @@ class ContactForm(forms.Form):
     message = forms.CharField(widget=forms.Textarea)
 
 
-# ============================================================================
-# INVOICING FORMS
-# ============================================================================
-
-class InvoiceForm(forms.ModelForm):
-    class Meta:
-        model = Invoice
-        fields = ['invoice_number', 'customer', 'issue_date', 'due_date', 'notes']
-        widgets = {
-            'issue_date': forms.DateInput(attrs={'type': 'date'}),
-            'due_date': forms.DateInput(attrs={'type': 'date'}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
-        }
-
-
-# ============================================================================
-# RECEIPT FORMS
-# ============================================================================
-
-class ReceiptForm(forms.ModelForm):
-    class Meta:
-        model = Receipt
-        fields = ['receipt_number', 'supplier', 'receipt_date', 'po_number', 'notes']
-        widgets = {
-            'receipt_date': forms.DateInput(attrs={'type': 'date'}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
-        }
-
-
-# ============================================================================
-# CUSTOMER & SUPPLIER FORMS
-# ============================================================================
-
-class CustomerForm(forms.ModelForm):
-    class Meta:
-        model = Customer
-        fields = ['name', 'contact_person', 'email', 'phone', 'address', 'city', 'country', 'postal_code', 'credit_limit', 'credit_terms_days', 'status', 'notes']
-        widgets = {
-            'address': forms.Textarea(attrs={'rows': 3}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
-        }
-
-
-class SupplierForm(forms.ModelForm):
-    class Meta:
-        model = Supplier
-        fields = ['name', 'contact_person', 'email', 'phone', 'address', 'city', 'country', 'postal_code', 'credit_terms_days', 'status', 'notes']
-        widgets = {
-            'address': forms.Textarea(attrs={'rows': 3}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
-        }
-
-
-# ============================================================================
-# DEBT FORMS
-# ============================================================================
-
-class DebtPaymentForm(forms.ModelForm):
-    class Meta:
-        model = Debt
-        fields = ['status']
+class ProductSearchForm(forms.Form):
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Search products...'})
+    )
+    is_active = forms.BooleanField(required=False, label="Active products only")

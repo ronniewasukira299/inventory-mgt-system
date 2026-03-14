@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from .models import Category, Product, Tag, Supplier
+from .models import Product, Supplier, StockMovement
 
 User = get_user_model()
 

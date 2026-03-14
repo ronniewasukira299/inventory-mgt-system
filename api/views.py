@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
-from core.models import Product, Category, Invoice, Receipt, Debt, Customer, Supplier, StockMovement
+from core.models import Product, Supplier, StockMovement
 from accounts.decorators import manager_required
 
 # class based view for all the API endpoints replicating all the routes in core/views.py but with JSON responses instead of HTML templates
